@@ -1,0 +1,32 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Data files (too large for GitHub)
+data/raw/
+data/processed/
+
+# Trained model files
+models/*.pkl
+models/*.h5
+models/*.pt
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
+
+# Mac system files
+.DS_Store
+
+# AWS credentials
+credentials
+*.pem
