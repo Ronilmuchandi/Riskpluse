@@ -8,7 +8,9 @@ A production-style end-to-end fraud detection and risk monitoring platform built
 
 ## Dashboard Preview
 
-![Dashboard](docs/Screenshot%202026-03-31%20at%207.07.24%20PM.png)
+![Dashboard Prediction](docs/s1.png)
+
+![Dashboard Drift](docs/s2.png)
 
 ---
 
