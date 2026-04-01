@@ -137,7 +137,7 @@ Open `http://localhost:8501`
 - SHAP explainability for individual predictions
 
 ---
-## Challenges & How We Solved Them
+## Challenges 
 
 **Class imbalance (0.17% fraud rate)**
 Naive models predicted everything as normal and still got 99.8% accuracy. Fixed by applying SMOTE oversampling — but only on training data. Applying it before splitting would have caused data leakage and inflated metrics.
