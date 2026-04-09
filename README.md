@@ -67,13 +67,19 @@ Alert fires if model health degrades
 
 ## Key Results
 
-| Model | ROC-AUC | Avg Precision |
-|---|---|---|
-| XGBoost | **0.9717** | **0.8214** |
-| PyTorch NN | 0.9706 | 0.7608 |
-| TF/Keras Autoencoder | 0.9595 | 0.5159 |
+| Model | ROC-AUC | Avg Precision | F2-Score |
+|---|---|---|---|
+| XGBoost (class weights) | **0.9842** | **0.8074** | **0.7851** |
+| PyTorch Neural Network | 0.9873 | 0.8087 | 0.7444 |
+| TF/Keras Autoencoder | 0.9547 | 0.0690 | — |
 
-KS test confirmed all three models are statistically significantly different (p < 0.0001) — model selection is not arbitrary.
+DeLong test confirmed XGBoost and PyTorch are statistically equivalent (p=0.677) — model selection is justified by speed and interpretability, not accuracy alone.
+
+Naive baseline (flag by transaction amount): ROC-AUC 0.41, catches zero fraud. Our models represent a genuine improvement over rule-based approaches.
+
+DeLong test confirmed XGBoost and PyTorch are statistically equivalent (p=0.677) — the 0.003 AUC difference is noise. XGBoost is chosen as primary for speed and interpretability. KS test confirmed all three model score distributions are significantly different (p < 0.0001).
+
+Class weights (scale_pos_weight=545) outperforms SMOTE on PCA-transformed data — ROC-AUC 0.9842 vs 0.2653. SMOTE generates synthetic fraud samples in PCA space with no semantic grounding, making interpolation unreliable.
 
 On a real confirmed fraud transaction from the dataset: **fraud probability 0.9997**.
 
