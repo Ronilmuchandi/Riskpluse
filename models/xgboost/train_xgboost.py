@@ -83,5 +83,9 @@ plt.tight_layout()
 plt.savefig('data/processed/xgboost_roc_curve.png')
 
 joblib.dump(model, 'models/xgboost/xgboost_model.pkl')
+# Save time-split test data for consistent evaluation across all models
+np.save('data/processed/X_test_raw.npy', X_test)
+np.save('data/processed/y_test_raw.npy', y_test)
+print("Test data saved for cross-model evaluation.")
 print("\nModel saved.")
 print("XGBoost training complete.")
