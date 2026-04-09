@@ -1,45 +1,50 @@
-# =============================================================
-# RiskPulse — XGBoost Fraud Classifier
-# Author: Ronil Muchandi
-# Description: Trains an XGBoost binary classifier on the
-#              balanced fraud dataset and evaluates performance
-# =============================================================
-
 import numpy as np
+import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 from xgboost import XGBClassifier
 from sklearn.metrics import (
     classification_report, confusion_matrix,
-    roc_auc_score, roc_curve, average_precision_score
+    roc_auc_score, roc_curve, average_precision_score, fbeta_score
 )
 
-# ── 1. Load preprocessed data ─────────────────────────────────
-print("Loading preprocessed data...")
-X_train = np.load('data/processed/X_train.npy')
-y_train = np.load('data/processed/y_train.npy')
-X_test  = np.load('data/processed/X_test.npy')
-y_test  = np.load('data/processed/y_test.npy')
-print(f"Train: {X_train.shape}, Test: {X_test.shape}")
+print("Loading data...")
+df = pd.read_csv('data/raw/creditcard.csv')
+df['Amount'] = (df['Amount'] - df['Amount'].mean()) / df['Amount'].std()
+df['Time'] = (df['Time'] - df['Time'].mean()) / df['Time'].std()
+df = df.sort_values('Time').reset_index(drop=True)
 
-# ── 2. Train XGBoost model ────────────────────────────────────
-print("\nTraining XGBoost model...")
+split = int(len(df) * 0.8)
+train_df = df.iloc[:split]
+test_df = df.iloc[split:]
+
+X_train = train_df.drop(columns=['Class']).values
+y_train = train_df['Class'].values
+X_test = test_df.drop(columns=['Class']).values
+y_test = test_df['Class'].values
+
+print(f"Train: {X_train.shape}, Test: {X_test.shape}")
+print(f"Train fraud rate: {y_train.mean():.4%}")
+print(f"Test fraud rate: {y_test.mean():.4%}")
+
+scale_pos_weight = int((y_train == 0).sum() / (y_train == 1).sum())
+print(f"\nscale_pos_weight: {scale_pos_weight}")
+
+print("\nTraining XGBoost with class weights...")
 model = XGBClassifier(
-    n_estimators=100,       # number of trees
-    max_depth=6,            # tree depth
-    learning_rate=0.1,      # step size shrinkage
-    scale_pos_weight=1,     # balanced via SMOTE already
-    use_label_encoder=False,
+    n_estimators=100,
+    max_depth=6,
+    learning_rate=0.1,
+    scale_pos_weight=scale_pos_weight,
     eval_metric='logloss',
     random_state=42,
-    n_jobs=-1               # use all CPU cores
+    n_jobs=-1
 )
 model.fit(X_train, y_train)
 print("Training complete.")
 
-# ── 3. Evaluate model ─────────────────────────────────────────
 print("\nEvaluating model...")
-y_pred  = model.predict(X_test)
+y_pred = model.predict(X_test)
 y_proba = model.predict_proba(X_test)[:, 1]
 
 print("\nClassification Report:")
@@ -47,10 +52,12 @@ print(classification_report(y_test, y_pred, target_names=['Normal', 'Fraud']))
 
 roc_auc = roc_auc_score(y_test, y_proba)
 avg_precision = average_precision_score(y_test, y_proba)
-print(f"ROC-AUC Score:          {roc_auc:.4f}")
-print(f"Average Precision Score: {avg_precision:.4f}")
+f2 = fbeta_score(y_test, y_pred, beta=2)
 
-# ── 4. Confusion matrix plot ──────────────────────────────────
+print(f"ROC-AUC Score:              {roc_auc:.4f}")
+print(f"Average Precision Score:    {avg_precision:.4f}")
+print(f"F2-Score (recall weighted): {f2:.4f}")
+
 cm = confusion_matrix(y_test, y_pred)
 plt.figure(figsize=(6, 4))
 plt.imshow(cm, cmap='Blues')
@@ -63,9 +70,7 @@ for i in range(2):
         plt.text(j, i, cm[i, j], ha='center', va='center', color='black')
 plt.tight_layout()
 plt.savefig('data/processed/xgboost_confusion_matrix.png')
-print("Confusion matrix saved.")
 
-# ── 5. ROC curve plot ─────────────────────────────────────────
 fpr, tpr, _ = roc_curve(y_test, y_proba)
 plt.figure(figsize=(6, 4))
 plt.plot(fpr, tpr, label=f'XGBoost (AUC = {roc_auc:.4f})', color='steelblue')
@@ -76,9 +81,7 @@ plt.title('ROC Curve — XGBoost')
 plt.legend()
 plt.tight_layout()
 plt.savefig('data/processed/xgboost_roc_curve.png')
-print("ROC curve saved.")
 
-# ── 6. Save model ─────────────────────────────────────────────
 joblib.dump(model, 'models/xgboost/xgboost_model.pkl')
-print("\nModel saved to models/xgboost/xgboost_model.pkl")
-print("\nXGBoost training complete.")
+print("\nModel saved.")
+print("XGBoost training complete.")

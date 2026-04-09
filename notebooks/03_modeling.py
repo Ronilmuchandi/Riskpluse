@@ -46,7 +46,7 @@ with torch.no_grad():
     pt_proba = pt_model(torch.tensor(X_test)).squeeze().numpy()
 
 # A/B Testing — compare ROC-AUC and Average Precision
-print("\n===== A/B Testing Results =====")
+print("\n===== Model Comparison Results =====")
 models = {'XGBoost': xgb_proba, 'Autoencoder': ae_proba, 'PyTorch': pt_proba}
 results = {}
 for name, proba in models.items():
